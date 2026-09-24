@@ -31,9 +31,6 @@ Hỗ trợ sinh dataset tổng hợp quy mô hàng triệu ảnh siêu tốc t�
   - Tối ưu tăng tốc phần cứng: tự động nhận diện Apple Silicon GPU (`mps`), NVIDIA GPU (`cuda`), hoặc `cpu`.
   - Checkpoint tự động lưu model tốt nhất (`best_model.pth`) dựa trên Validation Accuracy.
 
-- **Cẩm nang chi tiết (`HUONG_DAN_PYTORCH.md`):**
-  - Hướng dẫn nhập môn PyTorch chi tiết từ lý thuyết (so sánh với TensorFlow/Keras của thầy Andrew Ng) đến thực hành trên máy Mac M4.
-
 ---
 
 ## Hướng Dẫn Cài Đặt & Sử Dụng
@@ -42,14 +39,36 @@ Hỗ trợ sinh dataset tổng hợp quy mô hàng triệu ảnh siêu tốc t�
 
 Khuyến nghị dùng Python 3.10+ và tạo virtual environment:
 
-```bash
-# Tạo môi trường ảo
-python3 -m venv .venv
-source .venv/bin/activate
+**Windows (PowerShell):**
 
-# Cài đặt các thư viện cần thiết
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt
 ```
+
+**macOS / Linux:**
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+**GPU NVIDIA:** `requirements.txt` đã kèm index CUDA (`cu126`) nên lệnh trên tự cài torch bản CUDA. Kiểm tra nhanh:
+
+```bash
+python -c "import torch; print(torch.cuda.is_available())"   # phải in True
+```
+
+Nếu lỡ cài nhầm bản CPU (`pip show torch` hiện `+cpu`), cài lại riêng torch:
+
+```bash
+pip uninstall torch torchvision -y
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+```
+
+**Mac Apple Silicon (MPS):** không cần CUDA — cài bình thường, `train.py` tự nhận backend MPS.
 
 ### 2. Tải Font chữ
 
@@ -137,7 +156,6 @@ detect-letter/
 ├── preview.py             # Script tạo ảnh lưới xem trước dữ liệu
 ├── preview.png            # Ảnh mẫu dữ liệu font tổng hợp
 ├── preview_emnist.png     # Ảnh mẫu dữ liệu kết hợp EMNIST
-├── HUONG_DAN_PYTORCH.md   # Cẩm nang chi tiết PyTorch cho người mới bắt đầu
 └── README.md              # Tài liệu dự án
 ```
 

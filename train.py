@@ -33,10 +33,10 @@ CLASSES_JSON_PATH = os.path.join(DATA_DIR, "classes.json")
 CHECKPOINT_PATH = os.path.join(DATA_DIR, "best_model.pth")
 
 # Tham số huấn luyện (m có thể tăng giảm tuỳ ý)
-BATCH_SIZE = 256          # Số ảnh nạp vào model mỗi lượt (256 hoặc 512 chạy GPU Mac M4 rất mượt)
+BATCH_SIZE = 256          # Số ảnh nạp vào model mỗi lượt (256 hoặc 512 chạy mượt trên GPU)
 LEARNING_RATE = 1e-3      # Tốc độ học (0.001 là chuẩn, nếu thấy loss dao động mạnh thì giảm về 3e-4)
 NUM_EPOCHS = 10           # Số lần lặp qua toàn bộ dataset (với 1.8M mẫu thì 5-10 epoch là acc > 95% rồi)
-NUM_WORKERS = 4           # Số luồng CPU đọc data song song (Mac M4 để 4 hoặc 6 là vừa đẹp)
+NUM_WORKERS = 4           # Số luồng CPU đọc data song song (để 4 hoặc 6 là vừa đẹp)
 WEIGHT_DECAY = 1e-4       # Hệ số phạt L2 regularization để chống overfitting (học vẹt)
 
 
@@ -44,7 +44,7 @@ WEIGHT_DECAY = 1e-4       # Hệ số phạt L2 regularization để chống ove
 # 2. CHỌN THIẾT BỊ TÍNH TOÁN (GPU APPLE SILICON / CUDA / CPU)
 # ==============================================================================
 def get_computing_device() -> torch.device:
-    """Tự động kiểm tra và ưu tiên GPU Apple Silicon (chip M4 của m)."""
+    """Tự động chọn GPU: Apple Silicon (MPS) hoặc NVIDIA (CUDA), fallback CPU."""
     if torch.backends.mps.is_available():
         print("Phát hiện GPU Apple Silicon! Sử dụng backend MPS (Metal).")
         return torch.device("mps")
