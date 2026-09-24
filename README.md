@@ -1,4 +1,4 @@
-# 🔤 Detect Letter - Bộ Nhận Diện Kí Tự Đơn Lẻ (62 Classes)
+# Detect Letter - Bộ Nhận Diện Kí Tự Đơn Lẻ (62 Classes)
 
 Dự án huấn luyện mạng nơ-ron tích chập (Convolutional Neural Network - CNN) bằng **PyTorch** để nhận diện kí tự đơn lẻ (chữ hoa `A-Z`, chữ thường `a-z`, số `0-9` - tổng cộng 62 classes) hoặc 36 classes (không phân biệt hoa thường).
 
@@ -6,7 +6,7 @@ Hỗ trợ sinh dataset tổng hợp quy mô hàng triệu ảnh siêu tốc t�
 
 ---
 
-## 📸 Preview Dữ Liệu Sinh Ra
+## Preview Dữ Liệu Sinh Ra
 
 | Dữ liệu tổng hợp (Fonts + Augmentations) | Kết hợp chữ viết tay EMNIST |
 | :---: | :---: |
@@ -14,7 +14,7 @@ Hỗ trợ sinh dataset tổng hợp quy mô hàng triệu ảnh siêu tốc t�
 
 ---
 
-## ✨ Điểm Nổi Bật
+## Điểm Nổi Bật
 
 - **Sinh dữ liệu siêu tốc & đa dạng (`generate_dataset.py`):**
   - Tận dụng `multiprocessing` và `Shared Memory` (zero-copy) để sinh hàng triệu ảnh mà không tràn RAM.
@@ -36,7 +36,7 @@ Hỗ trợ sinh dataset tổng hợp quy mô hàng triệu ảnh siêu tốc t�
 
 ---
 
-## 🚀 Hướng Dẫn Cài Đặt & Sử Dụng
+## Hướng Dẫn Cài Đặt & Sử Dụng
 
 ### 1. Cài đặt môi trường
 
@@ -84,15 +84,27 @@ python preview.py --rows 8 --cols 8 --use-emnist --output preview_emnist.png
 Sinh tập dữ liệu mẫu huấn luyện và kiểm thử:
 
 ```bash
-# Sinh 100,000 mẫu train và 20,000 mẫu val (hỗ trợ multiprocessing)
+# Tổng 120,000 mẫu (mặc định tách 10% làm tập val) — hỗ trợ multiprocessing
 python generate_dataset.py \
-  --output-train ./dataset/dataset_train.h5 \
-  --output-val ./dataset/dataset_val.h5 \
-  --train-samples 100000 \
-  --val-samples 20000 \
-  --use-emnist \
-  --num-workers 8
+  --num-samples 120000 \
+  --val-split 0.1 \
+  --workers 8
 ```
+
+**Trộn chữ viết tay EMNIST theo tỉ lệ tuỳ ý** — ví dụ 70% chữ in từ font + 30% chữ viết tay:
+
+```bash
+python generate_dataset.py \
+  --num-samples 120000 \
+  --val-split 0.1 \
+  --use-emnist \
+  --emnist-ratio 0.3 \
+  --workers 8
+```
+
+- `--use-emnist`: bắt buộc phải có thì `--emnist-ratio` mới có hiệu lực.
+- `--emnist-ratio`: tỉ lệ mẫu viết tay EMNIST (0.0 → 1.0). `0.3` = 30% viết tay + 70% chữ in từ font.
+- `--num-samples`: tổng số mẫu (train + val). `--val-split`: tỉ lệ tách tập val (mặc định 0.1).
 
 *(Mẹo: Dùng flag `--case-insensitive` nếu chỉ cần phân loại 36 class: 0-9 và A-Z).*
 
@@ -108,7 +120,7 @@ Mô hình sẽ tự động chọn thiết bị tốt nhất (MPS trên Apple Si
 
 ---
 
-## 📁 Cấu Trúc Thư Mục
+## Cấu Trúc Thư Mục
 
 ```text
 detect-letter/
@@ -131,6 +143,6 @@ detect-letter/
 
 ---
 
-## 📜 License
+## License
 
 Dự án phục vụ mục đích học tập và nghiên cứu.

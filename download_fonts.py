@@ -187,7 +187,7 @@ def main():
     print(f"[+] Đã bổ sung thêm {sys_count} fonts từ hệ thống.")
 
     total_valid = [f for f in glob.glob(os.path.join(fonts_dir, "*")) if is_valid_font(f)]
-    print(f"[✓] TỔNG CỘNG: Đã sẵn sàng {len(total_valid)} fonts đa dạng để sinh dataset!")
+    print(f"TỔNG CỘNG: Đã sẵn sàng {len(total_valid)} fonts đa dạng để sinh dataset!")
 
 
 if __name__ == "__main__":

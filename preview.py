@@ -79,7 +79,7 @@ def generate_preview_grid(num_rows: int = 8, num_cols: int = 8, img_size: int = 
         shm_emnist.close()
         shm_emnist.unlink()
     cv2.imwrite(output_path, bgr_img)
-    print(f"[✓] Đã lưu ảnh xem thử vào: {os.path.abspath(output_path)}")
+    print(f"Đã lưu ảnh xem thử vào: {os.path.abspath(output_path)}")
     return output_path
 
 if __name__ == "__main__":

@@ -46,13 +46,13 @@ WEIGHT_DECAY = 1e-4       # Hệ số phạt L2 regularization để chống ove
 def get_computing_device() -> torch.device:
     """Tự động kiểm tra và ưu tiên GPU Apple Silicon (chip M4 của m)."""
     if torch.backends.mps.is_available():
-        print("[⚡] Phát hiện GPU Apple Silicon! Sử dụng backend MPS (Metal).")
+        print("Phát hiện GPU Apple Silicon! Sử dụng backend MPS (Metal).")
         return torch.device("mps")
     elif torch.cuda.is_available():
-        print(f"[⚡] Phát hiện GPU NVIDIA: {torch.cuda.get_device_name(0)}")
+        print(f"Phát hiện GPU NVIDIA: {torch.cuda.get_device_name(0)}")
         return torch.device("cuda")
     else:
-        print("[ℹ] Không có GPU, chạy tạm bằng CPU nha.")
+        print("Không có GPU, chạy tạm bằng CPU nha.")
         return torch.device("cpu")
 
 
@@ -76,9 +76,10 @@ class CharacterH5Dataset(Dataset):
         if not os.path.exists(h5_path):
             raise FileNotFoundError(f"Kh tìm thấy file: {h5_path}. M kiểm tra lại đường dẫn nha!")
 
-        # Mở đọc tạm tổng số mẫu rồi đóng ngay
+        # Mở đọc tạm tổng số mẫu & số kênh màu rồi đóng ngay
         with h5py.File(h5_path, "r") as f:
             self.total_samples = len(f["labels"])
+            self.channels = f["images"].shape[-1]
 
     def _lazy_init(self):
         """Mỗi worker process sẽ mở 1 kết nối file h5 độc lập."""
@@ -93,17 +94,18 @@ class CharacterH5Dataset(Dataset):
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, int]:
         self._lazy_init()
 
-        # Đọc mảng numpy uint8 (64, 64, 3) từ file h5
+        # Đọc mảng numpy uint8 (H, W, C) từ file h5
         img_np = self.images[idx]
         label = int(self.labels[idx])
 
-        # Chuyển sang PIL Image để áp dụng Transform
-        img_pil = Image.fromarray(img_np, mode="RGB")
-
-        if self.transform is not None:
-            img_tensor = self.transform(img_pil)
+        # Chuyển sang PIL Image: hỗ trợ cả grayscale (1 kênh) lẫn RGB (3 kênh)
+        if self.channels == 1:
+            img_pil = Image.fromarray(img_np[:, :, 0], mode="L")
         else:
-            img_tensor = T.functional.to_tensor(img_pil)
+            img_pil = Image.fromarray(img_np, mode="RGB")
+
+        # transform luôn được truyền vào từ main()
+        img_tensor = self.transform(img_pil)
 
         return img_tensor, label
 
@@ -273,7 +275,7 @@ def evaluate_model(model, dataloader, criterion, device, epoch, total_epochs):
 def demo_inference(model, val_dataset, idx_to_char, device, num_tests=5):
     """Bốc ngẫu nhiên vài ảnh từ tập Val ra cho model đoán thử."""
     print("\n" + "=" * 55)
-    print("🔍 KẾT QUẢ DỰ ĐOÁN THỬ NGHIỆM TRÊN MỘT SỐ ẢNH VAL:")
+    print("KẾT QUẢ DỰ ĐOÁN THỬ NGHIỆM TRÊN MỘT SỐ ẢNH VAL:")
     print("=" * 55)
     model.eval()
 
@@ -292,7 +294,7 @@ def demo_inference(model, val_dataset, idx_to_char, device, num_tests=5):
 
         true_char = idx_to_char[str(true_label)]
         pred_char = idx_to_char[str(pred_label)]
-        status = "✅ ĐÚNG" if true_char == pred_char else "❌ SAI"
+        status = "ĐÚNG" if true_char == pred_char else "SAI"
 
         print(f"[{i}] Thực tế: '{true_char}'  |  Model đoán: '{pred_char}' ({confidence:.1f}%)  --> {status}")
     print("=" * 55)
@@ -303,7 +305,7 @@ def demo_inference(model, val_dataset, idx_to_char, device, num_tests=5):
 # ==============================================================================
 def main():
     print("=" * 65)
-    print("🚀 BẮT ĐẦU CHƯƠNG TRÌNH HUẤN LUYỆN MODEL NHẬN DIỆN KÍ TỰ")
+    print("BẮT ĐẦU CHƯƠNG TRÌNH HUẤN LUYỆN MODEL NHẬN DIỆN KÍ TỰ")
     print("=" * 65)
 
     # 1. Đọc metadata danh sách class
@@ -316,6 +318,7 @@ def main():
 
     num_classes = meta["num_classes"]
     idx_to_char = meta["idx_to_char"]
+    channels = meta.get("channels", 3)  # Mặc định 3 cho dataset cũ thiếu key 'channels'
     print(f"[*] Số lượng kí tự cần phân loại: {num_classes} classes")
     print(f"[*] Danh sách class: {''.join(meta['classes'])}")
 
@@ -323,16 +326,22 @@ def main():
     device = get_computing_device()
 
     # 3. Chuẩn bị Transform (Chuẩn hoá pixel ảnh về phân phối chuẩn)
-    data_transform = T.Compose([
-        T.ToTensor(),  # Đổi giá trị từ [0, 255] sang [0.0, 1.0]
-        T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),  # Chuẩn ImageNet
-    ])
+    if channels == 1:
+        data_transform = T.Compose([
+            T.ToTensor(),  # Đổi giá trị từ [0, 255] sang [0.0, 1.0]
+            T.Normalize(mean=[0.5], std=[0.5]),  # Chuẩn cho ảnh grayscale
+        ])
+    else:
+        data_transform = T.Compose([
+            T.ToTensor(),  # Đổi giá trị từ [0, 255] sang [0.0, 1.0]
+            T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),  # Chuẩn ImageNet
+        ])
 
     # 4. Khởi tạo Dataset & DataLoader
     print("[*] Đang nạp dataset HDF5...")
     train_dataset = CharacterH5Dataset(TRAIN_H5_PATH, transform=data_transform)
     val_dataset = CharacterH5Dataset(VAL_H5_PATH, transform=data_transform)
-    print(f"[✓] Đã kết nối: Train ({len(train_dataset):,} mẫu) | Val ({len(val_dataset):,} mẫu)")
+    print(f"Đã kết nối: Train ({len(train_dataset):,} mẫu) | Val ({len(val_dataset):,} mẫu)")
 
     # DataLoader tự động gom batch và shuffle
     train_loader = DataLoader(
@@ -352,9 +361,9 @@ def main():
     )
 
     # 5. Khởi tạo Mô hình, Hàm mất mát và Thuật toán tối ưu
-    model = CharacterClassifierCNN(num_classes=num_classes, in_channels=3).to(device)
+    model = CharacterClassifierCNN(num_classes=num_classes, in_channels=channels).to(device)
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print(f"[✓] Khởi tạo model thành công! Tổng số tham số (weights): {total_params:,}")
+    print(f"Khởi tạo model thành công! Tổng số tham số (weights): {total_params:,}")
 
     # Hàm mất mát CrossEntropy cho phân loại nhiều class
     # (TƯƠNG ĐƯƠNG SparseCategoricalCrossentropy(from_logits=True) của thầy Andrew Ng)
@@ -371,7 +380,7 @@ def main():
     start_time = time.time()
 
     print("\n" + "-" * 65)
-    print(f"🔥 BẮT ĐẦU VÒNG LẶP HUẤN LUYỆN ({NUM_EPOCHS} EPOCHS)")
+    print(f"BẮT ĐẦU VÒNG LẶP HUẤN LUYỆN ({NUM_EPOCHS} EPOCHS)")
     print("-" * 65)
 
     for epoch in range(1, NUM_EPOCHS + 1):
@@ -406,11 +415,11 @@ def main():
                 "val_acc": val_acc,
                 "classes_meta": meta
             }, CHECKPOINT_PATH)
-            print(f"    🌟 [KỶ LỤC MỚI] Đã lưu model tốt nhất vào '{CHECKPOINT_PATH}' (Val Acc: {val_acc:.2f}%)")
+            print(f"    [KỶ LỤC MỚI] Đã lưu model tốt nhất vào '{CHECKPOINT_PATH}' (Val Acc: {val_acc:.2f}%)")
 
     total_training_time = time.time() - start_time
     print("\n" + "=" * 65)
-    print(f"🎉 HUẤN LUYỆN HOÀN TẤT SAU {total_training_time / 60:.2f} PHÚT!")
+    print(f"HUẤN LUYỆN HOÀN TẤT SAU {total_training_time / 60:.2f} PHÚT!")
     print(f"    - Độ chính xác cao nhất trên tập Val: {best_val_accuracy:.2f}%")
     print(f"    - File trọng số đã lưu: {CHECKPOINT_PATH}")
     print("=" * 65)

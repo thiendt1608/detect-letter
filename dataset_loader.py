@@ -226,6 +226,6 @@ if __name__ == "__main__":
     model = CharacterCNN(num_classes=62, in_channels=3)
     dummy_input = torch.randn(4, 3, 64, 64)
     output = model(dummy_input)
-    print(f"[✓] Model khởi tạo thành công! Input: {dummy_input.shape} -> Output: {output.shape}")
+    print(f"Model khởi tạo thành công! Input: {dummy_input.shape} -> Output: {output.shape}")
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"    - Tổng tham số có thể train (trainable parameters): {total_params:,}")

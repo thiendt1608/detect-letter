@@ -77,7 +77,7 @@ def load_emnist_raw(data_dir: str):
         images = np.concatenate([images, test_imgs], axis=0)
         labels = np.concatenate([labels, test_lbls], axis=0)
 
-    print(f"[✓] Đã nạp {len(images):,} mẫu EMNIST viết tay (Train + Test).")
+    print(f"Đã nạp {len(images):,} mẫu EMNIST viết tay (Train + Test).")
     return images, labels
 
 
@@ -467,7 +467,7 @@ def main():
     if not font_candidates:
         print("[X] Lỗi: Không tìm thấy font hợp lệ nào!")
         sys.exit(1)
-    print(f"[✓] Đã sẵn sàng {len(font_candidates)} font đa dạng.")
+    print(f"Đã sẵn sàng {len(font_candidates)} font đa dạng.")
 
     # 2. Xử lý EMNIST (nếu bật)
     shm_emnist = None
@@ -490,7 +490,7 @@ def main():
         shm_emnist = shared_memory.SharedMemory(create=True, size=raw_emnist_imgs.nbytes)
         shm_buf = np.ndarray(emnist_shape, dtype=np.uint8, buffer=shm_emnist.buf)
         shm_buf[:] = raw_emnist_imgs[:]
-        print(f"[✓] Đã tạo SharedMemory cho {len(raw_emnist_imgs):,} ảnh EMNIST ({raw_emnist_imgs.nbytes / (1024*1024):.1f} MB).")
+        print(f"Đã tạo SharedMemory cho {len(raw_emnist_imgs):,} ảnh EMNIST ({raw_emnist_imgs.nbytes / (1024*1024):.1f} MB).")
 
     try:
         # 3. Phân bổ mẫu đều các lớp & chia train/val
@@ -573,7 +573,7 @@ def main():
                                 cursor += b_size
                                 pbar.update(b_size)
 
-            print(f"[✓] Đã tạo xong file HDF5 train & val!")
+            print(f"Đã tạo xong file HDF5 train & val!")
 
         elif args.format == "image_folder":
             # Tạo sẵn cây thư mục
@@ -619,7 +619,7 @@ def main():
         elapsed = time.time() - t0
         speed = args.num_samples / max(1e-5, elapsed)
         print("\n" + "=" * 65)
-        print(f"[🎉] HOÀN TẤT SINH DATASET!")
+        print(f"HOÀN TẤT SINH DATASET!")
         print(f"    - Tổng thời gian: {elapsed:.2f} giây ({elapsed / 60:.2f} phút)")
         print(f"    - Tốc độ sinh trung bình: {speed:.1f} ảnh/giây")
         print(f"    - Vị trí dataset: {os.path.abspath(args.output_dir)}")

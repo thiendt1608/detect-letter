@@ -65,7 +65,7 @@ def is_complete_file(filepath: str) -> bool:
 
 def download_file_multithreaded(url: str, dest_path: str, desc: str, num_threads: int = 8):
     if is_complete_file(dest_path):
-        print(f"[✓] Đã có sẵn hoàn chỉnh: {os.path.basename(dest_path)}")
+        print(f"Đã có sẵn hoàn chỉnh: {os.path.basename(dest_path)}")
         return
 
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
@@ -109,7 +109,7 @@ def download_and_extract_emnist(dest_dir=TARGET_DIR):
     train_lbl_file = os.path.join(dest_dir, "emnist-byclass-train-labels-idx1-ubyte.gz")
 
     if is_complete_file(train_img_file) and is_complete_file(train_lbl_file):
-        print(f"[✓] EMNIST dataset đã tồn tại hoàn chỉnh ở: {dest_dir}")
+        print(f"EMNIST dataset đã tồn tại hoàn chỉnh ở: {dest_dir}")
         return dest_dir
     print("[*] Bắt đầu tải EMNIST ByClass từ mirror HuggingFace...")
     for filename, desc in FILES_TO_DOWNLOAD:
@@ -117,7 +117,7 @@ def download_and_extract_emnist(dest_dir=TARGET_DIR):
         dest_file = os.path.join(dest_dir, filename)
         download_file_multithreaded(file_url, dest_file, desc, num_threads=8)
 
-    print(f"[✓] Toàn bộ dữ liệu EMNIST đã sẵn sàng tại: {dest_dir}")
+    print(f"Toàn bộ dữ liệu EMNIST đã sẵn sàng tại: {dest_dir}")
     return dest_dir
 
 
