@@ -137,6 +137,20 @@ python train.py
 
 Mô hình sẽ tự động chọn thiết bị tốt nhất (MPS trên Apple Silicon Mac hoặc CUDA trên máy có GPU NVIDIA) và lưu trọng số tốt nhất vào `dataset/best_model.pth`.
 
+Mặc định bật **Early Stopping** (`--patience 3`): nếu `val_acc` không cải thiện 3 epoch liên tiếp thì dừng sớm. Tắt bằng `--patience 0`, hoặc đổi ngưỡng bằng `--patience N` (vd `--patience 5`).
+
+#### Tiếp tục huấn luyện (Resume)
+
+Nạp lại trọng số + optimizer + learning rate scheduler + lịch sử biểu đồ từ `dataset/best_model.pth`, rồi huấn luyện tiếp thêm epoch:
+
+```bash
+python train.py --resume --epochs 20
+```
+
+- `--resume`: nạp checkpoint tốt nhất để tiếp tục huấn luyện.
+- `--epochs 20`: tổng số epoch cần đạt. Nếu checkpoint đang dừng ở epoch 10, lệnh trên sẽ huấn luyện thêm 10 epoch nữa (từ epoch 11 tới epoch 20).
+- Nếu bỏ `--epochs`, chương trình dùng `NUM_EPOCHS` (mặc định 10) — khi resume từ epoch ≥ 10 thì cần tăng `--epochs` lên để có epoch mới để huấn luyện.
+
 ---
 
 ## Cấu Trúc Thư Mục
